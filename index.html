@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>鉛直運動シミュレーション</title>
+    <title>鉛直投げ上げシミュレーション</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
         body {
@@ -23,7 +23,7 @@
             min-height: 0;
         }
         .controls-container {
-            width: 400px;
+            width: 350px;
             overflow-y: auto;
         }
         .simulation-container {
@@ -37,49 +37,30 @@
             height: 100%;
             border: 1px solid #ccc;
             position: relative;
-            background: #f0f0f0;
+            background: linear-gradient(to bottom, #87CEEB 0%, #f0f0f0 100%);
             min-height: 400px;
         }
         .ball {
-            width: 20px;
-            height: 20px;
+            width: 25px;
+            height: 25px;
             border-radius: 50%;
             position: absolute;
             transition: top 0.05s linear;
             z-index: 10;
-        }
-        .ball-freefall {
-            background: red;
-            left: 25%;
-        }
-        .ball-throw-down {
-            background: blue;
-            left: 50%;
-        }
-        .ball-throw-up {
-            background: green;
-            left: 75%;
+            background: radial-gradient(circle at 30% 30%, #90EE90, #006400);
+            border: 2px solid #004000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            left: calc(50% - 12.5px);
         }
         .strobe-ball {
-            width: 12px;
-            height: 12px;
-            border: 2px solid;
+            width: 15px;
+            height: 15px;
+            border: 2px solid rgba(0, 128, 0, 0.6);
             border-radius: 50%;
             position: absolute;
             pointer-events: none;
             z-index: 5;
-        }
-        .strobe-freefall {
-            border-color: rgba(255, 0, 0, 0.6);
-            left: calc(25% + 4px);
-        }
-        .strobe-throw-down {
-            border-color: rgba(0, 0, 255, 0.6);
-            left: calc(50% + 4px);
-        }
-        .strobe-throw-up {
-            border-color: rgba(0, 128, 0, 0.6);
-            left: calc(75% + 4px);
+            left: calc(50% - 7.5px);
         }
         .bottom-section {
             height: 300px;
@@ -94,89 +75,160 @@
         }
         .controls {
             background: #f9f9f9;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 15px;
+            border-radius: 10px;
             margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .control-group {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 2px solid #006400;
+            border-radius: 10px;
+            background: #f0fff0;
         }
         .control-group h4 {
-            margin: 0 0 10px 0;
-            color: #333;
+            margin: 0 0 15px 0;
+            color: #006400;
+            font-size: 16px;
+            font-weight: bold;
         }
-        .freefall-controls h4 { color: red; }
-        .throw-down-controls h4 { color: blue; }
-        .throw-up-controls h4 { color: green; }
         .status {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
             font-family: monospace;
-            font-size: 12px;
+            font-size: 14px;
             margin-top: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .grid-line {
             position: absolute;
             width: 100%;
-            border-top: 1px dashed #ccc;
+            border-top: 1px dashed #999;
             pointer-events: none;
         }
         .grid-label {
             position: absolute;
             right: 100%;
             transform: translateY(-50%);
-            padding-right: 5px;
+            padding-right: 8px;
             font-size: 12px;
-            color: #666;
+            color: #333;
+            font-weight: bold;
+            background: rgba(255,255,255,0.8);
+            padding: 2px 8px 2px 2px;
+            border-radius: 3px;
         }
         .ground {
             position: absolute;
             bottom: 0;
             width: 100%;
-            height: 4px;
-            background-color: #663300;
+            height: 6px;
+            background: linear-gradient(to bottom, #8B4513, #654321);
         }
         .legend {
             position: absolute;
             top: 10px;
             left: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
             z-index: 20;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
         .legend-color {
-            width: 15px;
-            height: 15px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 10px;
+            background: radial-gradient(circle at 30% 30%, #90EE90, #006400);
+            border: 2px solid #004000;
         }
         .main-controls {
             text-align: center;
-            margin: 10px 0;
+            margin: 15px 0;
         }
         .main-controls button {
-            margin: 0 5px;
-            padding: 8px 16px;
-            font-size: 14px;
+            margin: 0 8px;
+            padding: 12px 20px;
+            font-size: 16px;
             cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .main-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .start-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .pause-btn {
+            background: #FF9800;
+            color: white;
+        }
+        .reset-btn {
+            background: #f44336;
+            color: white;
         }
         input[type="number"] {
-            width: 60px;
-            margin: 0 5px;
+            width: 70px;
+            margin: 0 8px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
         }
         label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .max-height-indicator {
+            position: absolute;
+            width: 100%;
+            border-top: 3px solid rgba(255, 0, 0, 0.8);
+            pointer-events: none;
+            z-index: 15;
+        }
+        .max-height-label {
+            position: absolute;
+            right: 100%;
+            transform: translateY(-50%);
+            padding-right: 8px;
             font-size: 12px;
+            color: red;
+            font-weight: bold;
+            background: rgba(255,255,255,0.9);
+            padding: 2px 8px 2px 2px;
+            border-radius: 3px;
+        }
+        .pause-indicator {
+            position: absolute;
+            top: 20%;
+            right: 20px;
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
     </style>
 </head>
@@ -185,52 +237,27 @@
         <div class="top-section">
             <div class="controls-container">
                 <div class="main-controls">
-                    <button onclick="startSimulation()">開始</button>
-                    <button onclick="pauseResumeSimulation()">一時停止/再開</button>
-                    <button onclick="resetSimulation()">リセット</button>
+                    <button class="start-btn" onclick="startSimulation()">開始</button>
+                    <button class="pause-btn" onclick="pauseResumeSimulation()">一時停止/再開</button>
+                    <button class="reset-btn" onclick="resetSimulation()">リセット</button>
                 </div>
                 
                 <div class="controls">
-                    <div class="control-group freefall-controls">
-                        <h4>
-                            <input type="checkbox" id="freefallEnabled" checked onchange="toggleMotion('freefall')">
-                            自由落下 (赤)
-                        </h4>
-                        <label>初期高さ (m): </label>
-                        <input type="number" id="freefallHeight" value="20" min="1" max="30" step="0.5" oninput="updateInitialPositions()">
-                        <br><br>
-                        <label>開始時間 (s): </label>
-                        <input type="number" id="freefallDelay" value="0" min="0" max="3" step="0.1" oninput="updateParameters()">
-                    </div>
-                    
-                    <div class="control-group throw-down-controls">
-                        <h4>
-                            <input type="checkbox" id="throwDownEnabled" checked onchange="toggleMotion('throwDown')">
-                            鉛直投げ下ろし (青)
-                        </h4>
-                        <label>初期高さ (m): </label>
-                        <input type="number" id="throwDownHeight" value="20" min="1" max="30" step="0.5" oninput="updateInitialPositions()">
-                        <br><br>
-                        <label>初速 (m/s): </label>
-                        <input type="number" id="throwDownVelocity" value="5" min="0" max="20" step="0.5" oninput="updateParameters()">
-                        <br><br>
-                        <label>開始時間 (s): </label>
-                        <input type="number" id="throwDownDelay" value="0.5" min="0" max="3" step="0.1" oninput="updateParameters()">
-                    </div>
-                    
-                    <div class="control-group throw-up-controls">
-                        <h4>
-                            <input type="checkbox" id="throwUpEnabled" checked onchange="toggleMotion('throwUp')">
-                            鉛直投げ上げ (緑)
-                        </h4>
+                    <div class="control-group">
+                        <h4>鉛直投げ上げ設定</h4>
                         <label>初期高さ (m): </label>
                         <input type="number" id="throwUpHeight" value="0" min="0" max="30" step="0.5" oninput="updateInitialPositions()">
                         <br><br>
                         <label>初速 (m/s): </label>
-                        <input type="number" id="throwUpVelocity" value="15" min="0" max="25" step="0.5" oninput="updateParameters()">
+                        <input type="number" id="throwUpVelocity" value="15" min="5" max="25" step="0.5" oninput="updateParameters()">
                         <br><br>
                         <label>開始時間 (s): </label>
-                        <input type="number" id="throwUpDelay" value="1.0" min="0" max="3" step="0.1" oninput="updateParameters()">
+                        <input type="number" id="throwUpDelay" value="0" min="0" max="3" step="0.1" oninput="updateParameters()">
+                        <br><br>
+                        <label>
+                            <input type="checkbox" id="pauseAtMax" checked onchange="updateParameters()">
+                            最高点で一時停止
+                        </label>
                     </div>
                 </div>
                 
@@ -241,22 +268,13 @@
                 <div class="simulation" id="simulation">
                     <div class="legend">
                         <div class="legend-item">
-                            <div class="legend-color" style="background: red;"></div>
-                            <span>自由落下</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: blue;"></div>
-                            <span>鉛直投げ下ろし</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: green;"></div>
+                            <div class="legend-color"></div>
                             <span>鉛直投げ上げ</span>
                         </div>
                     </div>
-                    <div class="ball ball-freefall" id="ballFreefall"></div>
-                    <div class="ball ball-throw-down" id="ballThrowDown"></div>
-                    <div class="ball ball-throw-up" id="ballThrowUp"></div>
+                    <div class="ball" id="ballThrowUp"></div>
                     <div class="ground"></div>
+                    <div class="pause-indicator" id="pauseIndicator">最高点</div>
                 </div>
             </div>
         </div>
@@ -280,12 +298,22 @@
         let elapsedTime = 0;
         let strobeBalls = [];
         let strobeCounter = 0;
+        let maxHeightLine = null;
+        let pausedAtMax = false;
+        let maxHeightReached = false;
+        let previousVelocity = null;
         
         // パラメータオブジェクト
         let params = {
-            freefall: { h0: 20, v0: 0, delay: 0, active: false, finished: false, hitGround: false, enabled: true },
-            throwDown: { h0: 20, v0: -5, delay: 0.5, active: false, finished: false, hitGround: false, enabled: true },
-            throwUp: { h0: 0, v0: 15, delay: 1.0, active: false, finished: false, hitGround: false, enabled: true }
+            throwUp: { 
+                h0: 0, 
+                v0: 15, 
+                delay: 0, 
+                active: false, 
+                finished: false, 
+                hitGround: false, 
+                pauseAtMax: true 
+            }
         };
         
         function addGridLines() {
@@ -295,6 +323,10 @@
             const maxHeight = 30;
             const gridInterval = 2;
             const pixelsPerMeter = simHeight / maxHeight;
+            
+            // 既存のグリッド線を削除
+            const existingLines = simulation.querySelectorAll('.grid-line');
+            existingLines.forEach(line => line.remove());
             
             for (let m = 0; m <= maxHeight; m += gridInterval) {
                 const line = document.createElement('div');
@@ -311,48 +343,48 @@
             }
         }
 
+        function addMaxHeightLine() {
+            if (maxHeightLine) {
+                maxHeightLine.remove();
+            }
+            
+            const maxH = calculateMaxHeight();
+            const pixelY = heightToPixel(maxH);
+            
+            maxHeightLine = document.createElement('div');
+            maxHeightLine.className = 'max-height-indicator';
+            maxHeightLine.style.top = `${pixelY}px`;
+            
+            const label = document.createElement('div');
+            label.className = 'max-height-label';
+            label.textContent = `最高点: ${maxH.toFixed(1)} m`;
+            
+            maxHeightLine.appendChild(label);
+            document.getElementById('simulation').appendChild(maxHeightLine);
+        }
+
+        function calculateMaxHeight() {
+            const v0 = params.throwUp.v0;
+            const h0 = params.throwUp.h0;
+            return h0 + (v0 * v0) / (2 * g);
+        }
+
         function initCharts() {
-            // 速度チャート
+            // 速度チャート（上向きを正とする）
             const vCtx = document.getElementById('velocityChart').getContext('2d');
             const velocityChart = new Chart(vCtx, {
                 type: 'scatter',
                 data: {
                     datasets: [{
-                        label: '自由落下',
-                        data: [],
-                        backgroundColor: 'red',
-                        borderColor: 'red',
-                        pointRadius: 2
-                    }, {
-                        label: '鉛直投げ下ろし',
-                        data: [],
-                        backgroundColor: 'blue',
-                        borderColor: 'blue',
-                        pointRadius: 2
-                    }, {
                         label: '鉛直投げ上げ',
                         data: [],
                         backgroundColor: 'green',
                         borderColor: 'green',
-                        pointRadius: 2
+                        pointRadius: 3
                     }, {
-                        label: '自由落下理論値',
+                        label: '理論値',
                         data: [],
-                        borderColor: 'rgba(255, 0, 0, 0.3)',
-                        borderDash: [5, 5],
-                        type: 'line',
-                        pointRadius: 0
-                    }, {
-                        label: '投げ下ろし理論値',
-                        data: [],
-                        borderColor: 'rgba(0, 0, 255, 0.3)',
-                        borderDash: [5, 5],
-                        type: 'line',
-                        pointRadius: 0
-                    }, {
-                        label: '投げ上げ理論値',
-                        data: [],
-                        borderColor: 'rgba(0, 128, 0, 0.3)',
+                        borderColor: 'rgba(0, 128, 0, 0.4)',
                         borderDash: [5, 5],
                         type: 'line',
                         pointRadius: 0
@@ -367,35 +399,35 @@
                             title: {
                                 display: true,
                                 text: '時間 (s)',
-                                font: { size: 14 }
+                                font: { size: 16 }
                             },
                             min: 0,
-                            max: 5.0,
+                            max: 4.0,
                             ticks: {
-                                font: { size: 12 }
+                                font: { size: 14 }
                             }
                         },
                         y: {
                             title: {
                                 display: true,
-                                text: '速度 (m/s) [下向き正]',
-                                font: { size: 14 }
+                                text: '速度 (m/s) [上向き正]',
+                                font: { size: 16 }
                             },
-                            min: -20,
+                            min: -25,
                             max: 25,
                             ticks: {
-                                font: { size: 12 }
+                                font: { size: 14 }
                             },
                             grid: {
                                 color: function(context) {
                                     if (context.tick.value === 0) {
-                                        return 'rgba(0, 0, 0, 0.5)';
+                                        return 'rgba(255, 0, 0, 0.8)';
                                     }
                                     return 'rgba(0, 0, 0, 0.1)';
                                 },
                                 lineWidth: function(context) {
                                     if (context.tick.value === 0) {
-                                        return 2;
+                                        return 3;
                                     }
                                     return 1;
                                 }
@@ -405,7 +437,7 @@
                     plugins: {
                         legend: {
                             labels: {
-                                font: { size: 10 }
+                                font: { size: 12 }
                             }
                         }
                     }
@@ -418,41 +450,15 @@
                 type: 'scatter',
                 data: {
                     datasets: [{
-                        label: '自由落下',
-                        data: [],
-                        backgroundColor: 'red',
-                        borderColor: 'red',
-                        pointRadius: 2
-                    }, {
-                        label: '鉛直投げ下ろし',
-                        data: [],
-                        backgroundColor: 'blue',
-                        borderColor: 'blue',
-                        pointRadius: 2
-                    }, {
                         label: '鉛直投げ上げ',
                         data: [],
                         backgroundColor: 'green',
                         borderColor: 'green',
-                        pointRadius: 2
+                        pointRadius: 3
                     }, {
-                        label: '自由落下理論値',
+                        label: '理論値',
                         data: [],
-                        borderColor: 'rgba(255, 0, 0, 0.3)',
-                        borderDash: [5, 5],
-                        type: 'line',
-                        pointRadius: 0
-                    }, {
-                        label: '投げ下ろし理論値',
-                        data: [],
-                        borderColor: 'rgba(0, 0, 255, 0.3)',
-                        borderDash: [5, 5],
-                        type: 'line',
-                        pointRadius: 0
-                    }, {
-                        label: '投げ上げ理論値',
-                        data: [],
-                        borderColor: 'rgba(0, 128, 0, 0.3)',
+                        borderColor: 'rgba(0, 128, 0, 0.4)',
                         borderDash: [5, 5],
                         type: 'line',
                         pointRadius: 0
@@ -467,24 +473,24 @@
                             title: {
                                 display: true,
                                 text: '時間 (s)',
-                                font: { size: 14 }
+                                font: { size: 16 }
                             },
                             min: 0,
-                            max: 5.0,
+                            max: 4.0,
                             ticks: {
-                                font: { size: 12 }
+                                font: { size: 14 }
                             }
                         },
                         y: {
                             title: {
                                 display: true,
                                 text: '高さ (m)',
-                                font: { size: 14 }
+                                font: { size: 16 }
                             },
                             min: 0,
-                            max: 35,
+                            max: 25,
                             ticks: {
-                                font: { size: 12 }
+                                font: { size: 14 }
                             },
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.1)',
@@ -495,7 +501,7 @@
                     plugins: {
                         legend: {
                             labels: {
-                                font: { size: 10 }
+                                font: { size: 12 }
                             }
                         }
                     }
@@ -506,55 +512,34 @@
         }
 
         function calculateTheoretical() {
-            let vDatasets = [[], [], []];
-            let pDatasets = [[], [], []];
+            let vDataset = [];
+            let pDataset = [];
             
-            for (let t = 0; t <= 5.0; t += 0.01) {
-                // 自由落下理論値
-                if (params.freefall.enabled && t >= params.freefall.delay) {
-                    const tRel = t - params.freefall.delay;
-                    const v = params.freefall.v0 - g * tRel;
-                    const h = params.freefall.h0 + params.freefall.v0 * tRel - 0.5 * g * tRel * tRel;
-                    vDatasets[0].push({ x: t, y: -v });
-                    if (h >= 0) pDatasets[0].push({ x: t, y: h });
-                }
-                
-                // 投げ下ろし理論値
-                if (params.throwDown.enabled && t >= params.throwDown.delay) {
-                    const tRel = t - params.throwDown.delay;
-                    const v = params.throwDown.v0 - g * tRel;
-                    const h = params.throwDown.h0 + params.throwDown.v0 * tRel - 0.5 * g * tRel * tRel;
-                    vDatasets[1].push({ x: t, y: -v });
-                    if (h >= 0) pDatasets[1].push({ x: t, y: h });
-                }
-                
-                // 投げ上げ理論値
-                if (params.throwUp.enabled && t >= params.throwUp.delay) {
+            for (let t = 0; t <= 4.0; t += 0.01) {
+                if (t >= params.throwUp.delay) {
                     const tRel = t - params.throwUp.delay;
                     const v = params.throwUp.v0 - g * tRel;
                     const h = params.throwUp.h0 + params.throwUp.v0 * tRel - 0.5 * g * tRel * tRel;
-                    vDatasets[2].push({ x: t, y: -v });
-                    if (h >= 0) pDatasets[2].push({ x: t, y: h });
+                    vDataset.push({ x: t, y: v });
+                    if (h >= 0) pDataset.push({ x: t, y: h });
                 }
             }
             
-            return { velocity: vDatasets, position: pDatasets };
+            return { velocity: vDataset, position: pDataset };
         }
 
-        function getHeight(type, t) {
-            const param = params[type];
-            if (t < param.delay) return param.h0;
+        function getHeight(t) {
+            if (t < params.throwUp.delay) return params.throwUp.h0;
             
-            const tRel = t - param.delay;
-            return param.h0 + param.v0 * tRel - 0.5 * g * tRel * tRel;
+            const tRel = t - params.throwUp.delay;
+            return params.throwUp.h0 + params.throwUp.v0 * tRel - 0.5 * g * tRel * tRel;
         }
 
-        function getVelocity(type, t) {
-            const param = params[type];
-            if (t < param.delay) return param.v0;
+        function getVelocity(t) {
+            if (t < params.throwUp.delay) return params.throwUp.v0;
             
-            const tRel = t - param.delay;
-            return param.v0 - g * tRel;
+            const tRel = t - params.throwUp.delay;
+            return params.throwUp.v0 - g * tRel;
         }
 
         function heightToPixel(height) {
@@ -566,22 +551,20 @@
             return simHeight - (height * pixelsPerMeter);
         }
         
-        function addStrobeBall(type, t) {
-            if (!params[type].enabled) return;
-            
-            const h = getHeight(type, t);
+        function addStrobeBall(t) {
+            const h = getHeight(t);
             if (h < 0 || h > 30) return;
             
             const pixelY = heightToPixel(h);
             const strobeBall = document.createElement('div');
-            strobeBall.className = `strobe-ball strobe-${type.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+            strobeBall.className = 'strobe-ball';
             strobeBall.style.top = `${pixelY}px`;
             
             document.getElementById('simulation').appendChild(strobeBall);
             strobeBalls.push(strobeBall);
             
-            // 古いストロボボールを削除（最大60個まで）
-            if (strobeBalls.length > 60) {
+            // 古いストロボボールを削除（最大40個まで）
+            if (strobeBalls.length > 40) {
                 const oldBall = strobeBalls.shift();
                 if (oldBall.parentNode) {
                     oldBall.parentNode.removeChild(oldBall);
@@ -602,90 +585,110 @@
             const t = elapsedTime;
             let statusText = `時間: ${t.toFixed(1)} s<br><br>`;
             
-            ['freefall', 'throwDown', 'throwUp'].forEach((type, index) => {
-                const param = params[type];
-                const ballId = type === 'freefall' ? 'ballFreefall' : 
-                              type === 'throwDown' ? 'ballThrowDown' : 'ballThrowUp';
-                const ball = document.getElementById(ballId);
-                const typeName = type === 'freefall' ? '自由落下' : 
-                               type === 'throwDown' ? '投げ下ろし' : '投げ上げ';
+            const param = params.throwUp;
+            const ball = document.getElementById('ballThrowUp');
+            
+            if (t >= param.delay && !param.finished) {
+                param.active = true;
+                const h = getHeight(t);
+                const v = getVelocity(t);
                 
-                if (!param.enabled) {
-                    // 無効化されている場合は非表示
-                    ball.style.display = 'none';
-                    return;
-                } else {
-                    ball.style.display = 'block';
-                }
-                
-                if (t >= param.delay && !param.finished) {
-                    param.active = true;
-                    const h = getHeight(type, t);
-                    const v = getVelocity(type, t);
+                // 最高点での停止判定を改善
+                // 前回の速度と今回の速度の符号が変わった時（正から負へ）、または速度が非常に小さい時
+                if (param.pauseAtMax && !maxHeightReached) {
+                    const isAtMaxHeight = (previousVelocity !== null && previousVelocity > 0 && v <= 0) || 
+                                         (Math.abs(v) < 0.5 && h > param.h0 && !pausedAtMax);
                     
-                    if (h >= 0) {
-                        // 通常の運動中
-                        const pixelY = heightToPixel(h);
-                        ball.style.top = `${pixelY}px`;
-                        
-                        statusText += `${typeName}: 高さ ${h.toFixed(2)}m, 速度 ${(-v).toFixed(2)}m/s<br>`;
-                        
-                        // ストロボ効果（0.2秒おき）
-                        if (strobeCounter % 2 === 0) {
-                            addStrobeBall(type, t);
-                        }
-                        
-                        // グラフデータ追加
-                        velocityChart.data.datasets[index].data.push({x: t, y: -v});
-                        positionChart.data.datasets[index].data.push({x: t, y: h});
-                    } else if (!param.hitGround) {
-                        // 地面に到達した瞬間
-                        param.hitGround = true;
-                        ball.style.top = `${heightToPixel(0)}px`;
-                        statusText += `${typeName}: 地面到達<br>`;
-                        
-                        // 地面到達時のデータも記録
-                        velocityChart.data.datasets[index].data.push({x: t, y: -v});
-                        positionChart.data.datasets[index].data.push({x: t, y: 0});
-                    } else {
-                        // 地面到達後
-                        statusText += `${typeName}: 地面到達済み<br>`;
+                    if (isAtMaxHeight) {
+                        pausedAtMax = true;
+                        maxHeightReached = true;
+                        isPaused = true;
+                        document.getElementById('pauseIndicator').style.display = 'block';
+                        statusText += `鉛直投げ上げ: <span style="color: red; font-weight: bold;">最高点到達!</span><br>`;
+                        statusText += `高さ: ${h.toFixed(2)}m, 速度: ${v.toFixed(2)}m/s<br>`;
+                        statusText += `<span style="color: red; font-weight: bold;">最高点で自動停止中 - 再開ボタンを押してください</span>`;
                     }
-                } else if (t < param.delay) {
-                    // 開始前
-                    const pixelY = heightToPixel(param.h0);
-                    ball.style.top = `${pixelY}px`;
-                    statusText += `${typeName}: 待機中 (${(param.delay - t).toFixed(1)}s後開始)<br>`;
-                } else {
-                    // 終了
-                    statusText += `${typeName}: 終了<br>`;
                 }
-            });
+                
+                if (!pausedAtMax) {
+                    document.getElementById('pauseIndicator').style.display = 'none';
+                }
+                
+                if (h >= 0) {
+                    // 通常の運動中
+                    const pixelY = heightToPixel(h);
+                    ball.style.top = `${pixelY}px`;
+                    
+                    if (!pausedAtMax) {
+                        statusText += `鉛直投げ上げ: 高さ ${h.toFixed(2)}m, 速度 ${v.toFixed(2)}m/s<br>`;
+                        
+                        if (v > 0.1) {
+                            statusText += `状態: 上昇中<br>`;
+                        } else if (v < -0.1) {
+                            statusText += `状態: 下降中<br>`;
+                        } else {
+                            statusText += `状態: 最高点付近 (速度≈0)<br>`;
+                        }
+                    }
+                    
+                    // ストロボ効果（0.2秒おき）
+                    if (strobeCounter % 2 === 0) {
+                        addStrobeBall(t);
+                    }
+                    
+                    // グラフデータ追加
+                    velocityChart.data.datasets[0].data.push({x: t, y: v});
+                    positionChart.data.datasets[0].data.push({x: t, y: h});
+                } else if (!param.hitGround) {
+                    // 地面に到達した瞬間
+                    param.hitGround = true;
+                    param.finished = true;
+                    ball.style.top = `${heightToPixel(0)}px`;
+                    statusText += `鉛直投げ上げ: 地面到達<br>`;
+                    
+                    // 地面到達時のデータも記録
+                    velocityChart.data.datasets[0].data.push({x: t, y: v});
+                    positionChart.data.datasets[0].data.push({x: t, y: 0});
+                } else {
+                    // 地面到達後
+                    statusText += `鉛直投げ上げ: 地面到達済み<br>`;
+                }
+                
+                previousVelocity = v;
+            } else if (t < param.delay) {
+                // 開始前
+                const pixelY = heightToPixel(param.h0);
+                ball.style.top = `${pixelY}px`;
+                statusText += `鉛直投げ上げ: 待機中 (${(param.delay - t).toFixed(1)}s後開始)<br>`;
+            } else {
+                // 終了
+                statusText += `鉛直投げ上げ: 終了<br>`;
+            }
             
             document.getElementById('ballStatus').innerHTML = statusText;
             
-            // 有効なボールがすべて地面に到達したか、または時間切れかをチェック
-            const enabledParams = Object.values(params).filter(p => p.enabled);
-            const allFinished = enabledParams.length === 0 || enabledParams.every(p => p.hitGround || elapsedTime < p.delay);
-            return !allFinished && elapsedTime < 5.0;
+            // シミュレーション終了条件
+            return !param.hitGround && elapsedTime < 4.0;
         }
 
         function updateParameters() {
-            params.freefall.delay = parseFloat(document.getElementById('freefallDelay').value);
-            params.throwDown.v0 = -parseFloat(document.getElementById('throwDownVelocity').value);
-            params.throwDown.delay = parseFloat(document.getElementById('throwDownDelay').value);
             params.throwUp.v0 = parseFloat(document.getElementById('throwUpVelocity').value);
             params.throwUp.delay = parseFloat(document.getElementById('throwUpDelay').value);
+            params.throwUp.pauseAtMax = document.getElementById('pauseAtMax').checked;
+            
+            if (maxHeightLine) {
+                addMaxHeightLine();
+            }
         }
 
         function updateInitialPositions() {
-            params.freefall.h0 = parseFloat(document.getElementById('freefallHeight').value);
-            params.throwDown.h0 = parseFloat(document.getElementById('throwDownHeight').value);
             params.throwUp.h0 = parseFloat(document.getElementById('throwUpHeight').value);
             
-            document.getElementById('ballFreefall').style.top = `${heightToPixel(params.freefall.h0)}px`;
-            document.getElementById('ballThrowDown').style.top = `${heightToPixel(params.throwDown.h0)}px`;
             document.getElementById('ballThrowUp').style.top = `${heightToPixel(params.throwUp.h0)}px`;
+            
+            if (maxHeightLine) {
+                addMaxHeightLine();
+            }
         }
 
         let velocityChart, positionChart;
@@ -693,14 +696,11 @@
         function startSimulation() {
             resetSimulation();
             updateParameters();
+            addMaxHeightLine();
             
             const theoretical = calculateTheoretical();
-            velocityChart.data.datasets[3].data = theoretical.velocity[0];
-            velocityChart.data.datasets[4].data = theoretical.velocity[1];
-            velocityChart.data.datasets[5].data = theoretical.velocity[2];
-            positionChart.data.datasets[3].data = theoretical.position[0];
-            positionChart.data.datasets[4].data = theoretical.position[1];
-            positionChart.data.datasets[5].data = theoretical.position[2];
+            velocityChart.data.datasets[1].data = theoretical.velocity;
+            positionChart.data.datasets[1].data = theoretical.position;
             
             simulationInterval = setInterval(() => {
                 if (!isPaused) {
@@ -719,6 +719,10 @@
 
         function pauseResumeSimulation() {
             isPaused = !isPaused;
+            if (!isPaused) {
+                pausedAtMax = false;
+                document.getElementById('pauseIndicator').style.display = 'none';
+            }
         }
 
         function resetSimulation() {
@@ -727,61 +731,37 @@
             isPaused = false;
             elapsedTime = 0;
             strobeCounter = 0;
+            pausedAtMax = false;
+            maxHeightReached = false;
+            previousVelocity = null;
             clearStrobeBalls();
+            document.getElementById('pauseIndicator').style.display = 'none';
             
-            Object.keys(params).forEach(key => {
-                params[key].active = false;
-                params[key].finished = false;
-                params[key].hitGround = false;
-            });
+            params.throwUp.active = false;
+            params.throwUp.finished = false;
+            params.throwUp.hitGround = false;
             
             updateInitialPositions();
             
-            for (let i = 0; i < 6; i++) {
-                velocityChart.data.datasets[i].data = [];
-                positionChart.data.datasets[i].data = [];
-            }
+            velocityChart.data.datasets[0].data = [];
+            velocityChart.data.datasets[1].data = [];
+            positionChart.data.datasets[0].data = [];
+            positionChart.data.datasets[1].data = [];
             velocityChart.update();
             positionChart.update();
+            
+            if (maxHeightLine) {
+                maxHeightLine.remove();
+                maxHeightLine = null;
+            }
             
             updateStatusDisplay();
         }
 
-        function toggleMotion(type) {
-            const checkbox = document.getElementById(type + 'Enabled');
-            params[type].enabled = checkbox.checked;
-            
-            // ボールの表示/非表示を切り替え
-            const ballId = type === 'freefall' ? 'ballFreefall' : 
-                          type === 'throwDown' ? 'ballThrowDown' : 'ballThrowUp';
-            const ball = document.getElementById(ballId);
-            ball.style.display = params[type].enabled ? 'block' : 'none';
-            
-            // グラフデータセットの表示/非表示も切り替え
-            const datasetIndex = type === 'freefall' ? 0 : type === 'throwDown' ? 1 : 2;
-            const theoreticalIndex = datasetIndex + 3;
-            
-            velocityChart.data.datasets[datasetIndex].hidden = !params[type].enabled;
-            velocityChart.data.datasets[theoreticalIndex].hidden = !params[type].enabled;
-            positionChart.data.datasets[datasetIndex].hidden = !params[type].enabled;
-            positionChart.data.datasets[theoreticalIndex].hidden = !params[type].enabled;
-            
-            velocityChart.update();
-            positionChart.update();
-        }
-
         function updateStatusDisplay() {
             let statusText = `時間: 0.0 s<br><br>`;
-            
-            if (params.freefall.enabled) {
-                statusText += `自由落下: 高さ ${params.freefall.h0.toFixed(2)}m, 速度 0.00m/s<br>`;
-            }
-            if (params.throwDown.enabled) {
-                statusText += `投げ下ろし: 高さ ${params.throwDown.h0.toFixed(2)}m, 速度 ${(-params.throwDown.v0).toFixed(2)}m/s<br>`;
-            }
-            if (params.throwUp.enabled) {
-                statusText += `投げ上げ: 高さ ${params.throwUp.h0.toFixed(2)}m, 速度 ${(-params.throwUp.v0).toFixed(2)}m/s`;
-            }
+            statusText += `鉛直投げ上げ: 高さ ${params.throwUp.h0.toFixed(2)}m, 速度 ${params.throwUp.v0.toFixed(2)}m/s<br>`;
+            statusText += `最高到達予想: ${calculateMaxHeight().toFixed(2)}m`;
             
             document.getElementById('ballStatus').innerHTML = statusText;
         }
@@ -800,7 +780,11 @@
 
         window.addEventListener('resize', function() {
             setTimeout(() => {
+                addGridLines();
                 updateInitialPositions();
+                if (maxHeightLine) {
+                    addMaxHeightLine();
+                }
             }, 100);
         });
     </script>
